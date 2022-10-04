@@ -1,0 +1,50 @@
+---
+title: "Who's the most Influent ?"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## By Flora GRANGER | Sania LIESSE MAGAGI | Selma CHAOUI 
+
+Jeu de données sur 1000 influenceurs 
+
+
+### Sommaire :
+
+*   I - Présentation du jeu de données
+*  II - Exploration de données (stat univariées et bivariées)
+* III - Tableau
+* IV  - Visualisation (graphiques et interprétation)
+
+
+
+###    I - Présentation du jeu de données :
+
+
+
+
+###  III - Tableau
+
+Le jeu de données est composé de 11 variables au total. 
+
+
+```{r cars}
+summary(cars)
+```
+
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

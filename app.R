@@ -18,31 +18,40 @@
 
 
 install.packages("anyLib")
-anyLib::anyLib(c("shiny", "shinydashboard", "shinyWidgets", "DT", "plotly", "ggplot2", "googleVis", "colourpicker","dplyr","esquisse"))
+anyLib::anyLib(c("shiny", "shinydashboard","dplyr"))
 
+install.packages("DT")
+install.packages("ggplot2")
+install.packages("colourpicker")
+install.packages("plotly")
+install.packages("googleVis")
+install.packages("googleVis")
 
+#Pachages a installé
+install.packages("shinyWidgets")
+install.packages("esquisse")
 
 
 #importation de données
 
-setwd("E:/_ BUT STID/STID 2/S 1/Projet R/Fichiers CSv")
+setwd("G:/_ BUT STID/STID 2/S 1/Projet R/Fichiers CSv")
 influenceur = read.csv2("Influencer.csv", h=T, sep=";")
 categorie = read.csv2("Categories.csv", h=T, sep=";")
 pays = read.csv2("Pays_Audience.csv", h=T, sep=";")
 appartient=read.csv2("Appartiens.csv", h=T, sep=";")
 instagram=read.csv2("instagram.csv", h=T, sep=";")
-
+continent=read.csv2("Continent.csv", h=T, sep=";")
 
 #création de liaisons/ jointures
 
-appartient <- merge(x = appartient, y = influenceur, by = "ID_Influencer", all.x = TRUE)
-appartient <- merge(x = appartient, y = categorie, by = "ID_Category", all.x = TRUE)
-appartient <- merge(x = appartient, y = pays, by = "ID_Pays", all.x = TRUE)
+jointure <- merge(x = appartient, y = influenceur, by = "ID_Influencer", all.x = TRUE)
+jointure <- merge(x = appartient, y = categorie, by = "ID_Category", all.x = TRUE)
+jointure <- merge(x = appartient, y = pays, by = "ID_Pays", all.x = TRUE)
 
 
 #Changement de variables 
 
-appartient$Followers<- as.integer(appartient$Followers,na.rm=F)
+
 
 # Palette de couleur
 couleurs <- c( noir = "#412a1e", 
@@ -76,6 +85,7 @@ library(dplyr)
 
 
 #SERVER
+#Server d�finit le fonctionnement de l'application.
 
 server <- function(input, output) { 
 
@@ -107,14 +117,9 @@ server <- function(input, output) {
   total.influenceur= nrow(x = influenceur) 
   total.categorie = nrow(x = categorie) 
   total.pays = nrow(x = pays) 
+  #A rajouter
+  #total.continent = nrow(x = continent)
   
-  #faire une table
-  table<- table(appartient$Category,appartient$Audience.Country)
-  
-  dimnames(table)
-  names(dimnames(table)) <- c("Catégories","Pays d'audience")
-  table <- addmargins(table)
-  table
   
   #Nombre total des influenceurs
   output$KPI1 <- renderValueBox({
@@ -136,8 +141,7 @@ server <- function(input, output) {
       total.pays, "Nombre total des pays d'audience", icon = icon("location-dot"),
       color = "green")
   })
-  #table 
-  output$table<-renderTable(table)
+ 
 }
   
 # LIBRAIRIES
@@ -148,6 +152,9 @@ library(dplyr)
 
 
 # UI 
+#Ui d�finit l'apparence de l'application
+
+
 ui <- dashboardPage(
   dashboardHeader(title = "Instagram influencers",
                   titleWidth = 300),
@@ -156,14 +163,16 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Lecture des données", tabName = "readData", icon = icon("readme")),
+      menuItem("Visualisation des KPI",tabName = "kpi",icon=icon("signal")),
       menuItem("Visualisation des données", tabName = "visualization", icon = icon("poll")),
-      menuItem("Tableaux et graphques",tabName = "tableau",icon=icon("signal")),
-      menuItem("Visualisation des KPI",tabName = "kpi",icon=icon("signal"))
+      menuItem("Tableaux",tabName = "tableau",icon=icon("signal")),
+      menuItem("Graphiques",tabName = "graphique",icon=icon("signal"))
+      
     )
   ),
   
   dashboardBody( 
-    
+ #les deux lignes ne sont pas relues   
     tags$br(),
     div(actionButton(inputId = "actBtnVisualisation", label = "Visualisation",icon = icon("play") ), align = "center"),
     
@@ -214,7 +223,7 @@ ui <- dashboardPage(
       
       # tableaux
       tabItem(tabName = "tableau",
-              h1("Tableaux et graphiques")
+              h1("Tableaux")
       ),
     
       #KPI
@@ -226,12 +235,16 @@ ui <- dashboardPage(
                 # Affichage des KPI
                 valueBoxOutput("KPI1"),
                 valueBoxOutput("KPI2"),
-                valueBoxOutput("KPI3"))
-                
+                valueBoxOutput("KPI3")),
+      #Graphques
+      tabItem(tabName = "graphique",
+              h1("Graphiques")
+      )
             
-        )
+        
       )
     )
+  )
 )
   
 

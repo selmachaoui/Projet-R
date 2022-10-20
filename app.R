@@ -19,13 +19,15 @@
 install.packages("anyLib")
 anyLib::anyLib(c("shiny", "shinydashboard", "shinyWidgets", "DT", "plotly", "ggplot2", "googleVis", "colourpicker"))
 
-
+install.packages("shiny")
+install.packages("shinyWidgets")
+install.packages("colourpicker")
 
 
 #importation de donnÃ©es
 
 setwd("E:/_ BUT STID/STID 2/S 1/Projet R/Fichiers CSv")
-influenceur = read.csv2("Influencer.csv", h=T, sep=";")
+influenceur = read.csv2("influenceur.csv", h=T, sep=";")
 categorie = read.csv2("Categories.csv", h=T, sep=";")
 pays = read.csv2("Pays_Audience.csv", h=T, sep=";")
 appartient=read.csv2("Appartiens.csv", h=T, sep=";")
@@ -45,6 +47,10 @@ jointure <- merge(x = appartient, y = pays, by = "ID_Pays", all.x = TRUE)
 influenceur$Followers<-as.numeric(influenceur$Followers,na.rm=F)
 influenceur$Authentic.engagement<-as.numeric(influenceur$Authentic.engagement,na.rm=F)
 influenceur$Engagement.avg<-as.numeric(influenceur$Engagement.avg,na.rm=F)
+
+instagram$Authentic.engagement<-as.numeric(instagram$Authentic.engagement,na.rm=F)
+instagram$Engagement.avg<-as.numeric(instagram$Engagement.avg,na.rm=F)
+
 
 influenceur2$Engagement.avg=as.factor(influenceur$Engagement.avg)
 influenceur2$Engagement.avg=as.numeric(influenceur$Engagement.avg)
@@ -71,10 +77,58 @@ couleurs <- c( noir = "#412a1e",
 esquisser()
 
 
-#Les couleurs qui marchent pour les KPI: red, yellow, aqua, blue, 
-#light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, 
-#maroon, black
 
+#Les graphiques
+tables_pays=table(instagram$Audience.Country)
+table_pays_order=tables_pays[order(tables_pays,decreasing = T)]
+top3<-barplot(table_pays_order[1:3],main="Top 3 de pays qui a bcp d'influeunceurs")
+
+top5<-instagram %>%
+  filter(Rank >= 996L & Rank <= 1000L) %>%
+  ggplot() +
+  aes(x = Title, y = Engagement.avg) +
+  geom_col(fill = "#112446") +
+  theme_minimal()
+
+
+# top 5 influenceurs qui ont le plus de followers
+
+
+# 1 ere étape :tri avec dyplyr
+
+library(dplyr)
+influenceurbis<-arrange(influenceur,desc(Followers),Account)
+
+# 2 ème étape: top 5 des influenceurs:
+
+df<-influenceurbis[1:6,]
+
+
+# 3 eme étape: Suppression de la colonne départ
+
+dft<-df[-c(1), ]
+
+
+# 4 eme étape: diagramme barres top5
+
+count<-table(dft$Account)
+par(mfrow=c(1,2))
+barplot(count,cex.names=0.4)
+graph3<-(barplot(sort(count, decreasing = TRUE), 
+        horiz = TRUE, las = 2, 
+        col = "red", col.main = "black",
+        main = "Top 5 des comptes les plus visités"))
+
+#catégorie nb de followers
+
+#Les tableaux 
+
+table1<- c(3,4,6,7,8)
+influe_top<- instagram[,table1]
+
+
+table2<- c(3,4,6,7,8)
+influe_pastop<- instagram[,table2]
 
 
 #Library
@@ -201,7 +255,41 @@ output$KPI6 <- renderValueBox({
 #glyphicon glyphicon-oeil-ouvert
 #glyphicon enregistré par glyphicon
 #glyphicon glyphicon-cœur
-}
+
+#Graphiques top3
+output$top3 <- renderPlot({
+  top3
+  
+})
+
+output$top5 <- renderPlot({
+  top5
+  
+})
+
+output$graph3 <- renderPlot({barplot(sort(count, decreasing = TRUE), 
+                                     horiz = TRUE, las = 2, 
+                                     col = "red", col.main = "black",
+                                     main = "Top 5 des comptes les plus visités")
+  
+})
+
+#Tableaux top 3 influenceurs
+output$tableau1 <- renderTable(
+  influe_top %>%
+    arrange(desc(influe_top$Followers)) %>%
+    slice(1:3)
+)
+
+output$tableau2 <- renderTable(
+  influe_pastop %>%
+    arrange(desc(influe_pastop$Followers)) %>%
+    slice(1000:998)
+)
+
+} 
+
+
 
 
 # UI 
@@ -224,12 +312,13 @@ ui <- dashboardPage(
   ),
   
   dashboardBody( 
-    tags$br(),
-    div(actionButton(inputId = "actBtnVisualisation", label = "Visualisation",icon = icon("play") ), align = "center"),
     
     tabItems(
       # Read data
       tabItem(tabName = "readData",
+              tags$br(),
+              div(actionButton(inputId = "actBtnVisualisation", label = "Visualisation",icon = icon("play") ), align = "center"),
+              
               h1("Lecture des donnees"),
               fileInput("dataFile",label = NULL,
                         buttonLabel = "Télécharger...",
@@ -260,12 +349,12 @@ ui <- dashboardPage(
                                     choices = c(Aucun = "",
                                                 "Double Quote" = '"',
                                                 "Simple Quote" = "'"),
-                                    selected = "", inline=T),
+                                    selected = "", inline=T)),
                 column(9,
                        h3("Fichier aperçu/File preview"),
-                       dataTableOutput(outputId = "preview")
+                       dataTableOutput(outputId = "preview"))
                 )
-                ))),
+                ),
       #KPI
       tabItem(tabName = "kpi",
               h1("KPI"),
@@ -284,13 +373,31 @@ ui <- dashboardPage(
       
       # tableaux
       tabItem(tabName = "tableau",
-              h1("Tableaux")
+              h1("Tableaux"),
+              fluidRow(
+                h2("Top 3 des influenceurs qui ont beaucoup de followers"),
+                column(12,
+                (tableOutput("tableau1"))),      
+                
+                #dataTableOutput("tableau2")
+      ),
+      fluidRow(
+        h2("Top 3 des influenceurs qui ont moins de followers"),
+        column(12,
+               (tableOutput("tableau2"))),      
+        
+      )
+                
       ),
       
       
       # Graphiques
       tabItem(tabName = "graphique",
-              h1("Graphiques")
+              h1("Graphiques"),
+              fluidRow(
+                box(downloadButton("export.pdf"),plotOutput("top3", height = 270),background = "purple"),
+                box(tableOutput("graph3"),background = "blue")
+              )
                       
               )
       )))

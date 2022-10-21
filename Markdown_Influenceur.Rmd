@@ -1,0 +1,234 @@
+---
+  output: rmdformats::material
+---
+
+---
+title: "Who's the most Influent ?"
+author : Flora GRANGER | Sania LIESSE MAGAGI | Selma CHAOUI 
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 4
+    css: bootstrap.min.css
+---
+
+\newline
+\newline
+\newline
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+```
+
+```{r data,echo=FALSE}
+influenceur = read.csv2("influenceur2.csv", h=T, sep=";")
+categorie = read.csv2("Categories.csv", h=T, sep=";")
+pays = read.csv2("Pays_Audience.csv", h=T, sep=";")
+appartient=read.csv2("Appartiens.csv", h=T, sep=";")
+
+```
+
+
+```{r packages, message = F, warning = F, error = F, echo = F, include=FALSE}
+
+install.packages("anyLib")
+install.packages("DT")
+install.packages("plotly")
+install.packages("ggplot2")
+install.packages("googleVis")
+install.packages("colourpicker")
+
+library(knitr)
+library(dplyr)
+library(esquisse)
+library(ggplot2)
+library(dplyr)
+library(shinyWidgets)
+library(DT)
+library(plotly)
+library(ggplot2)
+library(googleVis)
+library(colourpicker)
+
+
+``` 
+
+
+``` {r conv,  echo=FALSE}
+influenceur$Followers<-as.numeric(influenceur$Followers,na.rm=F)
+influenceur$Authentic.engagement<-as.numeric(influenceur$Authentic.engagement,na.rm=F)
+influenceur$Engagement.avg<-as.numeric(influenceur$Engagement.avg,na.rm=F)
+
+influenceur$Engagement.avg=as.factor(influenceur$Engagement.avg)
+influenceur$Engagement.avg=as.numeric(influenceur$Engagement.avg)
+influenceur$Authentic.engagement=as.factor(influenceur$Authentic.engagement)
+influenceur$Authentic.engagement=as.numeric(influenceur$Authentic.engagement)
+influenceur$Followers=as.numeric(influenceur$Followers)
+
+```
+
+``` {r couleur}
+couleurs <- c( noir = "#412a1e", 
+               jaune = "#f8de3c",
+               rouge = "#c8472c",
+               blanc = "#fefefe",
+               bleu_c = "#58acf4",
+               bleu_d = "#105edd",
+               bleu_f = "#0000FF",
+               vert   = "#009999")
+
+```
+\newline
+\newline
+
+
+<p> Jeu de données sur 1000 influenceurs</p>
+\newline
+\newline
+
+## Sommaire :
+
+-   I - Présentation du jeu de données
+-   II - Exploration de données
+-   III - Tableau
+
+\newline
+\newline
+
+
+## I - Présentation du jeu de données :
+
+<p>La base de données choisie concerne les influenceurs les plus suivis sur le réseau social : Instagram.</p>
+
+<p>
+
+<ul>
+
+La base de données brute est composé de 10 variables :
+
+<li>Rank : Classement de l'influenceur</li>
+
+<li>Account : nom du compte de l'influenceur</li>
+
+<li>Title : nom que l'influenceur a choisi de mettre dans sa bio Instagram</li>
+
+<li>Link : Lien redirigeant vers le compte Instagram de l'influenceur</li>
+
+<li>Category : Catégorie de contenu que fait l'influenceur</li>
+
+<li>Followers : Nombre d'abonnés</li>
+
+<li>Audience Country : Pays d'audience la plus forte</li>
+
+<li>Authentic engagement : Nombre de personnes allant voir le profil de l'influenceur</li>
+
+<li>Engagement AVG : moyenne du nombre de personnes allant sur le profil de l'influenceur</li>
+
+<li>Scrapped : date d'extraction des données. (donnée non exploitée)</li>
+
+</ul>
+
+Puis, nous avons rajouté une colonne "Continent" pour faire la liaison avec les pays d'audience :
+
+```{r influenceur, echo = FALSE}
+summary(influenceur)
+```
+
+Avec ce jeu de données nous allons nous demander <strong> si le nombre d'abonné influe sur l'engagement. </strong>
+
+</p>
+
+## II - Exploration de données
+
+<p>
+
+``` {r Boxplot de comparaison, echo = FALSE}
+boxplot(influenceur$Authentic.engagement,influenceur$Engagement.avg,names=c("Mention Like sur une photo","Visite du profil"),col=c("blue","red"), main="Moyenne du nombre de clics et du nombre de likes sur un profil", horizontal=F)
+
+```
+
+<strong> Cette boîte à moustache permet de comparer la moyenne du nombre de "likes" par photo et la moyenne des visites de profil d'un influenceur Instagram. On voit 450 000 "likes" en moyenne sur une photo d'un influenceur et légèrement plus de 450 000 visites de profil.</strong>
+
+
+``` {r histogramme sur le nombre de followers par continent, echo = FALSE,eval=TRUE}
+  
+count2<-table(influenceur$Continent)
+par(mfrow=c(1,2))
+barplot(sort(count2, decreasing = TRUE), 
+        horiz = FALSE, las = 2, 
+        col = "palegreen1", col.main = "black",
+        main = "Nombre d'influenceurs par continent")
+
+```
+
+<strong> Cet histogramme permet de montrer quels sont les continents qui ont les influenceurs les plus "populaires" et inversement, quels continents en ont le moins. On remarque que l'Amérique et l'Asie sont les 2 continents ayant le plus de followers, avec plus de 500 followers pour l'Amérique, soit plus de la moitié du nombre total d'influenceurs et plus de 300 followers pour l'Asie ( soit plus d'un tiers). </strong>
+
+```{r tri,message = F, warning = F, error = F, echo = F, include=FALSE}
+
+influenceurbis<-arrange(influenceur,desc(Followers),Account)
+df<-influenceurbis[1:6,]
+dft<-df[-c(1), ]
+
+
+```
+
+
+``` {r diagramme barres top5, echo = FALSE,eval=TRUE}
+
+count<-table(dft$Account)
+par(mfrow=c(1,2))
+barplot(count,cex.names=0.4)
+barplot(sort(count, decreasing = TRUE), 
+        horiz = TRUE, las = 2, 
+        col = "red", col.main = "black",
+        main = "Top 5 des comptes les plus visité")
+
+```
+
+
+
+</p>
+
+
+
+## III - Tableau
+
+<p>
+**Ce tableau vise à montrer dans quel continent et dans quelle catégorie les influenceurs les plus connus se situent, afin de pouvoir voir quel catégorie et quel continent contiennent le plus de followers. **
+</p>
+
+```{r tableau, echo = FALSE,eval=TRUE  }
+continent<-c("Europe","Amerique","Amerique","Amerique","Asie")
+catégorie<-c("Sport","Fashion","Sport","Music","Cinema")
+mydata<-data.frame(continent,catégorie, row.names=c("Cristiano Ronaldo","Kylie Jenner","Lionel Messi","Selena Gomez","Dwayne Johnson"))
+mydata
+```
+
+
+<p> 
+
+**Parmi les 1000 influenceurs les moins connus, nous nous intéressons cette-fois aux 5 influenceurs avec un nombre de followers moins important ainsi que leur nombre moyen de "like" par photo.**
+
+</p>
+
+```{r tableau 2,echo = FALSE,eval=TRUE}
+
+nombre_followers<-c(10000000,10000000,10000000,10000000,10000000)
+nombre_moy_likes_par_photo<-c(1600000,520100,474100,343800,244100)
+mydata2<-data.frame(nombre_followers,nombre_moy_likes_par_photo, nom.du.compte=c("wi__wi__wi","sandrinna_11","vousmevoyez","dean.schneider","francety"))
+mydata2
+```
+
+
+## Conclusion :
+
+<p>
+On peut voir grâce à ces visualisations on peut constater que le nombre de follower influe sur l'engagement. En effet, sur Instagram le nombre d'abonné a son importance et ce qui donne de la visibilité au propriétaire du compte. 
+
+</p>
+
+

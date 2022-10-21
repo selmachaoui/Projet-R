@@ -26,7 +26,7 @@ install.packages("colourpicker")
 
 #importation de donnÃ©es
 
-setwd("E:/_ BUT STID/STID 2/S 1/Projet R/Fichiers CSv")
+setwd("D:/_ BUT STID/STID 2/S 1/Projet R/Fichiers CSv")
 influenceur = read.csv2("influenceur.csv", h=T, sep=";")
 categorie = read.csv2("Categories.csv", h=T, sep=";")
 pays = read.csv2("Pays_Audience.csv", h=T, sep=";")
@@ -251,28 +251,62 @@ output$KPI6 <- renderValueBox({
     color = "aqua")
   
 })
-#glyphicon glyphicon-pouce levé
-#glyphicon glyphicon-oeil-ouvert
-#glyphicon enregistré par glyphicon
-#glyphicon glyphicon-cœur
+
 
 #Graphiques top3
 output$top3 <- renderPlot({
-  top3
+  barplot(table_pays_order[1:3],main="Top 3 de pays qui a bcp d'influeunceurs")
   
 })
+output$export.pdf <- downloadHandler(
+  filename =  function() {
+    paste("graphique","png",sep = ".")
+  },
+  content = function(file){
+    png(file)
+    barplot(table_pays_order[1:3],main="Top 3 de pays qui a bcp d'influeunceurs")
+    dev.off()
+  }
+)
 
 output$top5 <- renderPlot({
   top5
   
 })
-
+output$export3 <- downloadHandler(
+  filename =  function() {
+    paste("graphique1","png",sep = ".") 
+  },
+  content = function(file){
+    png(file)
+    instagram %>%
+      filter(Rank >= 996L & Rank <= 1000L) %>%
+      ggplot() +
+      aes(x = Title, y = Engagement.avg) +
+      geom_col(fill = "#112446") +
+      theme_minimal()
+    dev.off()
+  }
+)
 output$graph3 <- renderPlot({barplot(sort(count, decreasing = TRUE), 
                                      horiz = TRUE, las = 2, 
                                      col = "red", col.main = "black",
                                      main = "Top 5 des comptes les plus visités")
   
 })
+output$export2 <- downloadHandler(
+  filename =  function() {
+    paste("graphique2","png",sep = ".")
+  },
+  content = function(file){
+    png(file)
+    barplot(sort(count, decreasing = TRUE), 
+            horiz = TRUE, las = 2, 
+            col = "red", col.main = "black",
+            main = "Top 5 des comptes les plus visités")
+    dev.off()
+  }
+)
 
 #Tableaux top 3 influenceurs
 output$tableau1 <- renderTable(
@@ -286,6 +320,9 @@ output$tableau2 <- renderTable(
     arrange(desc(influe_pastop$Followers)) %>%
     slice(1000:998)
 )
+
+
+
 
 } 
 
@@ -395,9 +432,18 @@ ui <- dashboardPage(
       tabItem(tabName = "graphique",
               h1("Graphiques"),
               fluidRow(
-                box(downloadButton("export.pdf"),plotOutput("top3", height = 270),background = "purple"),
-                box(tableOutput("graph3"),background = "blue")
-              )
+                box(downloadButton("export.pdf","Télecharger"),plotOutput("top3", height = 270),background = "blue"),
+                box(
+                  title = "Données complémentaires",
+                  "Sélectionner un pays pour connaitre les influenceurs de ce pays qui sont dans le top !",br(),
+                  width = 6,
+                  selectInput("vv",label = "Choisir un pays", choices =  c("Tout", "India", "United States", "Argentina", "Brezil", "Indonesia", "Iran", "France", "Mexico", "Russia", "Sounth Korea", "Egypt", "Turkey", "Spain", "Italy", "China","Colombia","United Kingdom","Poland","Nigeria","Thailand","Philippines","Maroco","United Arab Emirates","Iraq","Germany","Algaria","Syria","Kazakhstan","Japan","Chile")),
+                  height = 325,
+                  background = "purple"
+                ),
+                
+                box(downloadButton("export3","Télecharger"), plotOutput("top5", height = 300),background = "blue"),
+                box(downloadButton("export2","Télecharger"),plotOutput("graph3", height = 300),background = "blue"))
                       
               )
       )))

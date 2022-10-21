@@ -1,6 +1,6 @@
 ---
 title: "Who's the most Influent ?"
-author: "By Flora GRANGER | Sania LIESSE MAGAGI | Selma CHAOUI" 
+author: "By Flora GRANGER | Liesse Sania IRANGABIYE | Selma CHAOUI" 
 output: 
   html_document:
     toc: yes
